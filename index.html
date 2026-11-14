@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="出水口接水收納架設計器。調整尺寸，預覽並下載可列印的外殼、格柵蓋、集水盒與收納抽屜 STL。">
+  <title>出水口接水收納架設計器 v1.0</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="mast">
+      <div>
+        <p class="eyebrow">熱水瓶出水口 · 檯面收納</p>
+        <h1>出水口接水收納架設計器</h1>
+        <p class="intro">放在檯面上、出水口正下方。杯子坐在格柵蓋上，水滴落入可抽出的集水盒，下方是收納抽屜。熱水瓶（例如象印 CV-DHF50，約 22 寬 × 28 深 × 40 高 cm）不用墊高。單位 mm。</p>
+      </div>
+      <p class="version">v1.0</p>
+    </header>
+
+    <div class="layout">
+      <section class="panel controls" aria-labelledby="params-title">
+        <h2 id="params-title">尺寸</h2>
+        <div class="field-grid">
+          <label><span class="field-title">總高度 H <span class="unit">mm</span></span><input id="H" type="number" min="40" max="200" step="1" value="100"></label>
+          <label><span class="field-title">寬度 W <span class="unit">mm</span></span><input id="W" type="number" min="100" max="240" step="1" value="160"></label>
+          <label><span class="field-title">深度 D <span class="unit">mm</span></span><input id="D" type="number" min="100" max="240" step="1" value="140"></label>
+          <label><span class="field-title">壁厚 <span class="unit">mm</span></span><input id="wall" type="number" min="2" max="5" step="0.5" value="3"></label>
+          <label class="wide"><span class="field-title">集水盒深度 <span class="unit">mm</span></span><input id="catchDepth" type="number" min="15" max="40" step="1" value="25"><span class="hint">盒內可盛水的高度，不含盒底。</span></label>
+          <label><span class="field-title">格柵蓋厚 <span class="unit">mm</span></span><input id="lidT" type="number" min="3" max="6" step="0.5" value="4"></label>
+          <label><span class="field-title">格柵槽寬 <span class="unit">mm</span></span><input id="slotW" type="number" min="2" max="6" step="0.5" value="3"></label>
+          <label><span class="field-title">格柵肋寬 <span class="unit">mm</span></span><input id="ribW" type="number" min="2" max="6" step="0.5" value="3"></label>
+          <label class="wide"><span class="field-title">滑動間隙（每側） <span class="unit">mm</span></span><input id="clearance" type="number" min="0.2" max="1" step="0.1" value="0.4"><span class="hint">集水盒與抽屜的寬、深、高，每側都留這個空隙。</span></label>
+          <label><span class="field-title">列印平台寬 <span class="unit">mm</span></span><input id="bedX" type="number" min="80" max="600" step="1" value="250"></label>
+          <label><span class="field-title">列印平台深 <span class="unit">mm</span></span><input id="bedY" type="number" min="80" max="600" step="1" value="250"></label>
+        </div>
+
+        <h2>使用說明</h2>
+        <ol class="howto">
+          <li>量出水口底部到檯面的距離。架子放在檯面上，熱水瓶本身不要墊高。</li>
+          <li>杯子放在格柵蓋上。把總高度 H 設成杯口比出水口低 2–3 cm。粗估：H ≈ 出水口離檯面 − 杯高 − 20～30 mm。</li>
+          <li>水滴從格柵槽落入集水盒。集水盒與抽屜都從前方抽出，倒水時不必掀開格柵蓋。抽屜內部高度不到 25 mm 時會自動省略抽屜與下層隔間。</li>
+          <li>下載的 STL 是單一封閉殼、單位 mm，已平放。外殼背面貼床（開口朝上）；格柵蓋、集水盒、抽屜底面貼床。某一件超過列印平台時，右上方會標示。</li>
+        </ol>
+      </section>
+
+      <div class="stage">
+        <div id="alerts" class="alerts" hidden></div>
+        <section class="panel preview" aria-labelledby="preview-title">
+          <div class="preview-head">
+            <div>
+              <h2 id="preview-title">3D 預覽</h2>
+              <p>與即將下載的 STL 同一份網格。拖曳旋轉、滾輪縮放。分解只移動畫面，不寫進檔案。</p>
+            </div>
+            <div class="preview-tools">
+              <p class="stat"><strong id="partCount">4 件</strong><span>列印零件</span></p>
+              <button id="explode" type="button" aria-pressed="false">分解視圖</button>
+            </div>
+          </div>
+          <div id="preview3dToggles" class="toggle-row"></div>
+          <div id="preview3dCanvas" class="preview3d-canvas"></div>
+          <p class="preview-note">組裝方向：前方為深度較小的一側，高度朝上。下載檔已轉成平放：外殼背面貼床，其餘三件底面貼床。</p>
+        </section>
+
+        <section class="panel" aria-labelledby="summary-title">
+          <h2 id="summary-title">計算尺寸</h2>
+          <dl id="summary" class="summary"></dl>
+        </section>
+
+        <section class="panel" aria-labelledby="download-title">
+          <div class="download-head">
+            <h2 id="download-title">下載</h2>
+            <div class="file-actions">
+              <button id="saveParams" class="secondary" type="button">儲存參數</button>
+              <button id="loadParams" class="secondary" type="button">載入參數</button>
+              <input id="fileInput" type="file" accept="application/json,.json" hidden>
+            </div>
+          </div>
+          <div id="downloads" class="downloads"></div>
+          <p class="fine">參數檔是 <code>water-tray-parameters.json</code>。沒寫進檔案的欄位會沿用畫面上的值。</p>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./vendor/OrbitControls.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
