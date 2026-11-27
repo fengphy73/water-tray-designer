@@ -13,8 +13,25 @@ export const LIMITS = {
   ribW: { min: 2, max: 6, step: 0.5, def: 3, label: '格柵肋寬' },
   clearance: { min: 0.2, max: 1, step: 0.1, def: 0.4, label: '滑動間隙（每側）' },
   bedX: { min: 80, max: 600, step: 1, def: 250, label: '列印平台寬' },
-  bedY: { min: 80, max: 600, step: 1, def: 250, label: '列印平台深' }
+  bedY: { min: 80, max: 600, step: 1, def: 250, label: '列印平台深' },
+  shellR: { min: 0, max: 8, step: 0.5, def: 5, label: '外殼圓角半徑' }
 };
+
+/** Leave this much wall at the front edge of each side wall after the outer fillet. */
+export const SHELL_FILLET_MIN_REMAIN = 1;
+
+/** Largest outer-corner radius that does not enter the cavity or leave a knife edge. */
+export function maxShellR(wall) {
+  const t = Number(wall);
+  if (!Number.isFinite(t) || t <= 0) return 0;
+  return Math.max(0, t - SHELL_FILLET_MIN_REMAIN);
+}
+
+export function effectiveShellR(wall, requested) {
+  const r = Number(requested);
+  const want = Number.isFinite(r) && r > 0 ? r : 0;
+  return Math.min(want, maxShellR(wall));
+}
 
 export function defaultParams() {
   const params = {};
@@ -101,9 +118,18 @@ function fitsBed(sizeX, sizeY, bedX, bedY) {
 
 export function derive(raw) {
   const { params, clamped } = sanitizeParams(raw);
-  const { H, W, D, wall: t, catchDepth, lidT, slotW, ribW, clearance: c, bedX, bedY } = params;
+  const { H, W, D, wall: t, catchDepth, lidT, slotW, ribW, clearance: c, bedX, bedY, shellR: shellRReq } = params;
   const warnings = [];
   if (clamped.length) warnings.push({ level: 'info', text: '有參數超出允許範圍，已調整到最接近的可用值。' });
+
+  const shellRMax = maxShellR(t);
+  const shellR = effectiveShellR(t, shellRReq);
+  if (shellRReq > shellR + 1e-9) {
+    warnings.push({
+      level: 'info',
+      text: `外殼圓角半徑 ${fmt(shellRReq)} mm 會切到內腔或讓前緣過薄，已改用 ${fmt(shellR)} mm（壁厚 ${fmt(t)} mm 時，上限是壁厚減 ${fmt(SHELL_FILLET_MIN_REMAIN)} mm）。`
+    });
+  }
 
   const ledgeW = Math.max(4, t, c + 2.5);
   // H = drawer interior + catch interior + lid + 4 walls (bottom, divider, catch floor, and the two clearances' walls)
@@ -222,6 +248,7 @@ export function derive(raw) {
   return {
     params, warnings, hasDrawer, nominalDrawerInterior, drawerMinH, planesOk,
     W, D, H, t, c, lidT, ledgeW, slotW, ribW, bedX, bedY,
+    shellRReq, shellR, shellRMax,
     catchInterior, catchReduced, catchDepth,
     zFloor, zDiv0, zDiv1, zLid, catchZ, drawerZ,
     compW, compD, catchCompH, drawerCompH, drawerInterior,
