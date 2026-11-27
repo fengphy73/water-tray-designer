@@ -309,31 +309,99 @@ function addPull(mesh, pull, yWall) {
   mesh.quadP([px1, yWall, pz0], [px1, yWall, pz1], [px1, yOut, pz1], [px1, yOut, pzLip]);
 }
 
+const FILLET_SEGS = 16;
+
+function nearEq(a, b, eps = 1e-6) {
+  return Math.abs(a - b) <= eps;
+}
+
+function addOuterCornerFillets(mesh, W, D, zs, R) {
+  if (!(R > 1e-6) || zs.length < 2) return;
+  const corners = [
+    { cx: R, cy: R, a0: Math.PI, a1: 1.5 * Math.PI },
+    { cx: W - R, cy: R, a0: 1.5 * Math.PI, a1: 2 * Math.PI },
+    { cx: R, cy: D - R, a0: 0.5 * Math.PI, a1: Math.PI },
+    { cx: W - R, cy: D - R, a0: 0, a1: 0.5 * Math.PI }
+  ];
+  const zLo = zs[0];
+  const zHi = zs[zs.length - 1];
+  for (const { cx, cy, a0, a1 } of corners) {
+    const pts = [];
+    for (let i = 0; i <= FILLET_SEGS; i++) {
+      const a = a0 + (a1 - a0) * (i / FILLET_SEGS);
+      pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]);
+    }
+    for (let k = 0; k < zs.length - 1; k++) {
+      const z0 = zs[k];
+      const z1 = zs[k + 1];
+      for (let i = 0; i < FILLET_SEGS; i++) {
+        const [xA, yA] = pts[i];
+        const [xB, yB] = pts[i + 1];
+        mesh.quadP([xA, yA, z0], [xB, yB, z0], [xB, yB, z1], [xA, yA, z1]);
+      }
+    }
+    const c0 = mesh.v(cx, cy, zLo);
+    const c1 = mesh.v(cx, cy, zHi);
+    for (let i = 0; i < FILLET_SEGS; i++) {
+      const [xA, yA] = pts[i];
+      const [xB, yB] = pts[i + 1];
+      mesh.tri(c0, mesh.v(xB, yB, zLo), mesh.v(xA, yA, zLo));
+      mesh.tri(c1, mesh.v(xA, yA, zHi), mesh.v(xB, yB, zHi));
+    }
+  }
+}
+
+function skipFilletInterfaces(xs, ys, W, D, R) {
+  return (face) => {
+    if (face.axis === 'x') {
+      const x = xs[face.plane];
+      const ym = (ys[face.j] + ys[face.j + 1]) / 2;
+      const front = ym > 0 && ym < R;
+      const back = ym > D - R && ym < D;
+      if ((nearEq(x, R) || nearEq(x, W - R)) && (front || back)) return true;
+      return false;
+    }
+    if (face.axis === 'y') {
+      const y = ys[face.plane];
+      const xm = (xs[face.i] + xs[face.i + 1]) / 2;
+      const left = xm > 0 && xm < R;
+      const right = xm > W - R && xm < W;
+      if ((nearEq(y, R) || nearEq(y, D - R)) && (left || right)) return true;
+      return false;
+    }
+    return false;
+  };
+}
+
 function buildShellAssembly(spec) {
   const { W, D, H, t, ledgeW, hasDrawer, zDiv0, zDiv1 } = spec;
-  const xs = [0, t, t + ledgeW, W - t - ledgeW, W - t, W];
-  const ys = [0, D - t - ledgeW, D - t, D];
+  const R = spec.shellR || 0;
+  const xs = uniquePlanes([0, R > 0 ? R : null, t, t + ledgeW, W - t - ledgeW, W - t, R > 0 ? W - R : null, W]);
+  const ys = uniquePlanes([0, R > 0 ? R : null, D - t - ledgeW, D - t, R > 0 ? D - R : null, D]);
   const zs = hasDrawer ? [0, t, zDiv0, zDiv1, H - spec.lidT, H] : [0, t, H - spec.lidT, H];
   assertIncreasing(xs, '外殼寬度');
   assertIncreasing(ys, '外殼深度');
   assertIncreasing(zs, '外殼高度');
   const mesh = new MeshBuilder();
-  const nx = xs.length - 1;
-  const ny = ys.length - 1;
-  const nz = zs.length - 1;
   const isSolid = (i, j, k) => {
-    if (k === 0) return true;
-    if (i === 0 || i === nx - 1) return true;
-    if (j === ny - 1) return true;
-    if (hasDrawer && k === 2) return true;
-    if (k === nz - 1) {
-      if (i === 1 || i === nx - 2) return true;
-      if (i === 2 && j === 1) return true;
+    const cx = (xs[i] + xs[i + 1]) / 2;
+    const cy = (ys[j] + ys[j + 1]) / 2;
+    const cz = (zs[k] + zs[k + 1]) / 2;
+    if (R > 0 && ((cx < R && cy < R) || (cx > W - R && cy < R) || (cx < R && cy > D - R) || (cx > W - R && cy > D - R))) {
       return false;
+    }
+    if (cz < t) return true;
+    if (cx < t || cx > W - t) return true;
+    if (cy > D - t) return true;
+    if (hasDrawer && cz > zDiv0 && cz < zDiv1) return true;
+    if (cz > H - spec.lidT) {
+      if ((cx > t && cx < t + ledgeW) || (cx > W - t - ledgeW && cx < W - t)) return true;
+      if (cx > t + ledgeW && cx < W - t - ledgeW && cy > D - t - ledgeW && cy < D - t) return true;
     }
     return false;
   };
-  emitGrid(mesh, xs, ys, zs, isSolid, null);
+  emitGrid(mesh, xs, ys, zs, isSolid, R > 0 ? skipFilletInterfaces(xs, ys, W, D, R) : null);
+  addOuterCornerFillets(mesh, W, D, zs, R);
   return finalizeMesh(mesh.pos, mesh.idx);
 }
 

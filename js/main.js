@@ -61,6 +61,9 @@ function renderSummary(spec, built) {
   box.innerHTML = '';
   const items = [
     ['外殼外形', `${fmt(spec.W)} × ${fmt(spec.D)} × ${fmt(spec.H)} mm（寬 × 深 × 高）`],
+    ['外殼圓角', spec.shellR > 0
+      ? `外側四條直立外角 R ${fmt(spec.shellR)} mm` + (Math.abs(spec.shellRReq - spec.shellR) > 1e-9 ? `（已由 ${fmt(spec.shellRReq)} mm 限制）` : '')
+      : '直角'],
     ['外殼列印', `背面貼床，佔床 ${fmt(spec.W)} × ${fmt(spec.H)} mm，列印高度 ${fmt(spec.D)} mm`],
     ['格柵蓋', `${fmt(spec.lidW)} × ${fmt(spec.lidD)} × ${fmt(spec.lidT)} mm，${spec.slotPlan.n} 條排水槽`],
     ['格柵承口', `左右凸緣之間 ${fmt(spec.openingW)} × ${fmt(spec.openingD)} mm，蓋子每側壓住約 ${fmt(spec.overlap)} mm`],

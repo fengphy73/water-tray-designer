@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="出水口接水收納架設計器。調整尺寸，預覽並下載可列印的外殼、格柵蓋、集水盒與收納抽屜 STL。">
-  <title>出水口接水收納架設計器 v1.0</title>
+  <title>出水口接水收納架設計器 v1.1</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -27,6 +27,7 @@
           <label><span class="field-title">寬度 W <span class="unit">mm</span></span><input id="W" type="number" min="100" max="240" step="1" value="160"></label>
           <label><span class="field-title">深度 D <span class="unit">mm</span></span><input id="D" type="number" min="100" max="240" step="1" value="140"></label>
           <label><span class="field-title">壁厚 <span class="unit">mm</span></span><input id="wall" type="number" min="2" max="5" step="0.5" value="3"></label>
+          <label class="wide"><span class="field-title">外殼圓角半徑 <span class="unit">mm</span></span><input id="shellR" type="number" min="0" max="8" step="0.5" value="5"><span class="hint">只倒外殼外側四條直立外角，其他邊維持直角。0 為直角。若大於壁厚可容許的值，會自動縮小，以免切到內腔或讓前緣過薄。</span></label>
           <label class="wide"><span class="field-title">集水盒深度 <span class="unit">mm</span></span><input id="catchDepth" type="number" min="15" max="40" step="1" value="25"><span class="hint">盒內可盛水的高度，不含盒底。</span></label>
           <label><span class="field-title">格柵蓋厚 <span class="unit">mm</span></span><input id="lidT" type="number" min="3" max="6" step="0.5" value="4"></label>
           <label><span class="field-title">格柵槽寬 <span class="unit">mm</span></span><input id="slotW" type="number" min="2" max="6" step="0.5" value="3"></label>
